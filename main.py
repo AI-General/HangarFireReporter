@@ -1,6 +1,7 @@
 import datetime
 import json
 import sys
+from src.parser.doc import doc_parse
 from src.scrapers.scrape_newsapi import get_articles_from_newsapi
 from src.scrapers.scrape_serpapi import SerpScraper
 
@@ -18,25 +19,28 @@ if __name__ == "__main__":
         today = datetime.datetime.utcnow()
         from_date = (today - datetime.timedelta(days=8)).strftime('%Y-%m-%d')
         articles = get_articles_from_newsapi(query, from_date)
-        with open("newsapi_articles.json", "w", encoding="utf-8") as f:
+        with open("temp/newsapi_articles.json", "w", encoding="utf-8") as f:
             json.dump(articles, f, ensure_ascii=False, indent=2)
         print(f"Scraped {len(articles)} articles and saved to articles.json.")
     
     if option == "scrape_serpapi":
-        # query_list = [
-        #     'aircraft hangar fire',
-        #     'MRO facility fire',
-        #     'aviation hangar fire',
-        #     'aircraft maintenance hangar fire'
-        # ]
         query_list = [
-            'aircraft hangar fire'
+            'aircraft hangar fire',
+            'MRO facility fire',
+            'aviation hangar fire',
+            'aircraft maintenance hangar fire'
         ]
         scraper = SerpScraper()
         articles = scraper.scrape(query_list=query_list)
-        with open("serpapi_articles.json", "w", encoding="utf-8") as f:
+        with open("temp/serpapi_articles.json", "w", encoding="utf-8") as f:
             json.dump(articles, f, ensure_ascii=False, indent=2)
         print(f"Scraped {len(articles)} articles and saved to serpapi_articles.json.")  
     
+    if option == "doc_parse":
+        file_path = "data/history.docx"  # Replace with your document path
+        articles = doc_parse(file_path)
+        with open("temp/doc_articles.json", "w", encoding="utf-8") as f:
+            json.dump(articles, f, ensure_ascii=False, indent=2)
+        print(f"Parsed {len(articles)} articles and saved to doc_articles.json.")
     else:
         print(f"Unknown option: {option}")

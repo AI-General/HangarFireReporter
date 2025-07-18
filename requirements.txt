@@ -2,3 +2,4 @@ requests
 python-dotenv
 colorlog
 google-search-results
+python-docx
