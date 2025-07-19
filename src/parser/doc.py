@@ -24,10 +24,10 @@ def extract_details(content: str) -> Dict[str, Any]:
         "title": r"Article Title:\s*(.*)",
         "source": r"Publication name:\s*(.*)",
         "location": r"Accident Location:\s*(.*)",
-        "article_date": r"Article Date:\s*(.*)",
+        "publishedAt": r"Article Date:\s*(.*)",
         "author": r"Author:[\t]*(.*)",
         "url": r"Article Link:\s*(\S+)",
-        "description": r"Article Link:\s*\S+\s*([\s\S]+)"
+        "content": r"Article Link:\s*\S+\s*([\s\S]+)"
     }
     
     details = {}

@@ -1,11 +1,15 @@
+import dotenv
 import datetime
 import json
 import sys
 from src.parser.doc import doc_parse
 from src.scrapers.scrape_newsapi import get_articles_from_newsapi
 from src.scrapers.scrape_serpapi import SerpScraper
+from src.db import doc_upload, clean_database
+
 
 if __name__ == "__main__":
+    dotenv.load_dotenv()  # Load environment variables from .env file
     if len(sys.argv) < 2:
         print("Usage: python main.py <option>")
         sys.exit(1)
@@ -42,5 +46,11 @@ if __name__ == "__main__":
         with open("temp/doc_articles.json", "w", encoding="utf-8") as f:
             json.dump(articles, f, ensure_ascii=False, indent=2)
         print(f"Parsed {len(articles)} articles and saved to doc_articles.json.")
+        
+    if option == "doc_upload":
+        clean_database("articles")
+        file_path = "temp/doc_articles_test.json"
+        doc_upload(file_path)
+        
     else:
         print(f"Unknown option: {option}")

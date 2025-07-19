@@ -1,0 +1,72 @@
+import os
+from typing import List, Dict, Any
+from supabase import create_client
+import json
+from src.llm import get_embedding
+
+def clean_database(db_name: str) -> None:
+    """
+    Cleans the database by dropping the specified table if it exists.
+    
+    Args:
+        db_name (str): Name of the database to clean.
+    """
+    # Supabase credentials from environment variables
+    SUPABASE_URL = os.getenv('SUPABASE_URL')
+    SUPABASE_KEY = os.getenv('SUPABASE_KEY')
+    
+    if not SUPABASE_URL or not SUPABASE_KEY:
+        raise EnvironmentError('Supabase credentials not set in environment variables.')
+    
+    supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
+    
+    # Drop the table if it exists
+    supabase.table(db_name).delete().gte("id", 0).execute()
+
+
+def doc_upload(file_path: str) -> List[Dict[str, Any]]:
+    """
+    Reads a JSON file containing a list of articles and uploads them to the 'articles' table in Supabase.
+    Returns the list of inserted records.
+    """
+    # Read JSON file
+    with open(file_path, 'r', encoding='utf-8') as f:
+        articles = json.load(f)
+    
+    # Supabase credentials from environment variables
+    SUPABASE_URL = os.getenv('SUPABASE_URL')
+    SUPABASE_KEY = os.getenv('SUPABASE_KEY')
+    
+    if not SUPABASE_URL or not SUPABASE_KEY:
+        raise EnvironmentError('Supabase credentials not set in environment variables.')
+    
+    supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
+
+    if not isinstance(articles, list):
+        raise ValueError('JSON file must contain a list of articles.')
+
+    # Generate embeddings and add to each article
+    for article in articles:
+        # Combine title and content (adjust fields as needed)
+        combined_text = f"""Title: {article.get('title', '')}
+Source: {article.get('source', "")}
+Location: {article.get('location', "")}
+Published At: {article.get('publishedAt', "")}
+Author: {article.get('author', "")}
+Content: {article.get('content', "")}""".strip()
+
+        if not combined_text:
+            raise ValueError('Article missing title and content for embedding.')
+
+        article['embedding'] = get_embedding(combined_text)
+
+        if isinstance(article.get('url'), str): article['url'] = [article.get('url')]
+
+    # Upload to Supabase
+    response = supabase.table('articles').insert(articles).execute()
+    # Use dict-style access for error/data only
+    if isinstance(response, dict):
+        if response.get('error'):
+            raise Exception(f"Supabase insert error: {response['error']}")
+        return response.get('data', [])
+    return [] 
