@@ -38,18 +38,23 @@ def article_upload(articles: List[Dict[str, Any]], is_backfill: bool) -> List[Di
                     original_article['airport_hangar_name'] = analysis_result.get('airport_hangar_name')
                 if analysis_result.get('country_region') and not original_article.get('location'):
                     original_article['location'] = analysis_result.get('country_region')
+                if article.get('description') and not original_article.get('description'):
+                    original_article['description'] = article.get('description', '')
+                if article.get('content') and not original_article.get('content'):
+                    original_article['content'] = article.get('content', '')
                 supabase.table('articles').update(original_article).eq('id', analysis_result["id"]).execute()
             else:
                 record = {
                     "title": article.get('title'),
                     "source": article.get('source'),
-                    "publishedAt": article.get('publishedAt')[:10] if article.get('publishedAt') else None,
                     "location": analysis_result.get('country_region', ''),
                     "airport_hangar_name": analysis_result.get('airport_hangar_name', ''),
                     "author": article.get('author'),
                     "url": [article.get('url')],
+                    "description": article.get('description'),
                     "content": article.get('content'),
                     "embedding": query_embedding,
+                    "publishedAt": article.get('publishedAt')[:10] if article.get('publishedAt') else None,
                     "collectedAt": week_string,
                 }
                 
