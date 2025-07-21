@@ -2,6 +2,7 @@ import dotenv
 import datetime
 import json
 import sys
+from src.logging.colorlog_config import get_color_logger
 from src.parser.doc import doc_parse
 from src.scrapers.scrape_newsapi import get_articles_from_newsapi
 from src.scrapers.scrape_serpapi import SerpScraper
@@ -9,25 +10,47 @@ from src.db import doc_upload, clean_database, get_articles, get_similar_article
 from src.db.upload import article_upload
 from src.excel.article_excel_exporter import ArticleExcelExporter
 
+logging = get_color_logger()
+
+def weekly_process():
+    query_list = [
+        'aircraft hangar fire',
+        'MRO facility fire',
+        'aviation hangar fire',
+        'aircraft maintenance hangar fire'
+    ]
+    scraper = SerpScraper()
+    articles = scraper.scrape(query_list=query_list, weekly=True)
+    
+    new_articles = article_upload(articles, is_backfill=False)
+    logging.info(f"Uploaded {len(new_articles)} new articles to Supabase.")
+    
+    exporter = ArticleExcelExporter()
+    exporter.export_articles_to_excel()
+
+
 if __name__ == "__main__":
     dotenv.load_dotenv()  # Load environment variables from .env file
     if len(sys.argv) < 2:
-        print("Usage: python main.py <option>")
+        logging.error("Usage: python main.py <option>")
         sys.exit(1)
-    
-    # query = 'aircraft hangar fire'
-    
+       
     option = sys.argv[1].lower()
     
     if option == "scrape_newsapi" or option == "0":
         query = '(aircraft hangar fire) OR (MRO facility fire) OR (aviation hangar fire) OR (aircraft maintenance hangar fire)'
         today = datetime.datetime.utcnow()
-        from_date = (today - datetime.timedelta(days=8)).strftime('%Y-%m-%d')
+        from_date = (today - datetime.timedelta(days=20)).strftime('%Y-%m-%d')
         articles = get_articles_from_newsapi(query, from_date)
         with open("temp/newsapi_articles.json", "w", encoding="utf-8") as f:
             json.dump(articles, f, ensure_ascii=False, indent=2)
-        print(f"Scraped {len(articles)} articles and saved to articles.json.")
+        
+        new_articles = article_upload(articles, is_backfill=False)
+        logging.info(f"Uploaded {len(new_articles)} new articles to Supabase.")
     
+    elif option == "weekly":
+        weekly_process()
+
     elif option == "scrape_serpapi" or option == "1":
         query_list = [
             'aircraft hangar fire',
@@ -39,7 +62,7 @@ if __name__ == "__main__":
         articles = scraper.scrape(query_list=query_list)
         with open("temp/serpapi_articles.json", "w", encoding="utf-8") as f:
             json.dump(articles, f, ensure_ascii=False, indent=2)
-        print(f"Scraped {len(articles)} articles and saved to serpapi_articles.json.")  
+        print(f"Scraped {len(articles)} articles and saved to serpapi_articles.json.")
     
     elif option == "doc_parse" or option == "2":
         file_path = "data/history.docx"  # Replace with your document path

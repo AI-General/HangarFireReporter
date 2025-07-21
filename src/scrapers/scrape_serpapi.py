@@ -85,8 +85,8 @@ class SerpScraper:
             return datetime.now().strftime('%Y-%m-%d')
         except Exception:
             return datetime.now().strftime('%Y-%m-%d')
-    
-    def search_google_news(self, query: str) -> List[Dict[str, Any]]:
+
+    def search_google_news(self, query: str, weekly: bool = False) -> List[Dict[str, Any]]:
         """Search Google News for query"""
         try:
             params = {
@@ -99,7 +99,7 @@ class SerpScraper:
             results = search.get_dict()
             
             if "news_results" in results:
-                return [{
+                temp_articles = [{
                     "title": article.get("title"),
                     "url": article.get("link"),
                     "description": None,
@@ -107,6 +107,18 @@ class SerpScraper:
                     "author": ",".join(article.get("source").get("authors")) if article.get("source").get("authors") else article.get("source").get("authors"),
                     "publishedAt": self._parse_date(article.get("date")),
                 } for article in results["news_results"]]
+                
+                if weekly:
+                    today = datetime.today()
+                    # Find this week's Monday
+                    this_week_start = today - timedelta(days=today.weekday())
+                    # Go back 7 days to last week's Monday
+                    last_week_start = this_week_start - timedelta(days=7)
+                    final_articles = [article for article in temp_articles if datetime.strptime(article['publishedAt'], '%Y-%m-%d') >= last_week_start]
+                    return final_articles
+                else:
+                    return temp_articles
+                
             else:
                 if "error" in results:
                     logger.error(f"Error in search results for query '{query}': {results['error']}")
@@ -118,7 +130,7 @@ class SerpScraper:
             logger.error(f"Error searching Google News for query '{query}': {str(e)}")
             return []
 
-    def search_bing_news(self, query: str) -> List[Dict[str, Any]]:
+    def search_bing_news(self, query: str, weekly: bool = False) -> List[Dict[str, Any]]:
         """Search Bing News for MRO hangar projects with pagination and date range check"""
         try:
             params = {
@@ -126,7 +138,7 @@ class SerpScraper:
                 "q": query,
                 "api_key": self.api_key,
                 "count": 10, # Number of results per page
-                'qft': 'sortbydate="1"'
+                'qft': 'interval="8"+sortbydate="1"' if weekly else 'sortbydate="1"'
             }
 
             all_articles = []
@@ -161,7 +173,7 @@ class SerpScraper:
             logger.error(f"Error searching Bing News for query '{query}': {str(e)}")
             return []
 
-    def scrape(self, query_list: List[str]) -> List[Dict[str, Any]]:
+    def scrape(self, query_list: List[str], weekly: bool = False) -> List[Dict[str, Any]]:
         """Scrape all news sources"""
         all_articles = []
 
@@ -169,11 +181,11 @@ class SerpScraper:
             logger.info(f"Searching for query: {query}")
 
             # Search Bing News
-            bing_results = self.search_bing_news(query)
+            bing_results = self.search_bing_news(query, weekly=weekly)
             all_articles.extend(bing_results)
             
             # Search Google News
-            google_results = self.search_google_news(query)
+            google_results = self.search_google_news(query, weekly=weekly)
             all_articles.extend(google_results)
         
         # Remove duplicates based on URL
