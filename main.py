@@ -73,11 +73,18 @@ if __name__ == "__main__":
 
         analyzer = HangarFireAnalyzer()
         analyzer.analyze_article(article=article)
+    
     elif option == "backfill" or option == "6":
-        file_path = "temp/serpapi_articles_test.json"
+        file_path = "temp/serpapi_articles.json"
         with open(file_path, "r", encoding="utf-8") as f:
             articles = json.load(f)
-        new_articles = article_upload(articles)
+        new_articles = article_upload(articles, is_backfill=True)
+        with open("temp/backfill_articles.json", "w", encoding="utf-8") as f:
+            json.dump(new_articles, f, ensure_ascii=False, indent=2)
         print(f"Uploaded {len(new_articles)} new articles to Supabase.")
+    
+    elif option == "backfill_report" or option == "7":
+        pass
+    
     else:
         print(f"Unknown option: {option}")
