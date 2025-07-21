@@ -39,6 +39,8 @@ def extract_details(content: str) -> Dict[str, Any]:
         else:
             details[key] = ""
 
+    if "content" in details:
+        details["content"] = details["content"].replace("\n", " ").strip()
     return details
 
 
