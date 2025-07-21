@@ -49,18 +49,14 @@ def doc_upload(file_path: str) -> List[Dict[str, Any]]:
     for article in articles:
         # Combine title and content (adjust fields as needed)
         combined_text = f"""Title: {article.get('title', '')}
-Source: {article.get('source', "")}
 Location: {article.get('location', "")}
 Published At: {article.get('publishedAt', "")}
-Author: {article.get('author', "")}
 Content: {article.get('content', "")}""".strip()
 
         if not combined_text:
             raise ValueError('Article missing title and content for embedding.')
 
         article['embedding'] = get_embedding(combined_text)
-        
-        article["date"] = ""
         article["collectedAt"] = "doc"
 
         if isinstance(article.get('url'), str): article['url'] = [article.get('url')]
@@ -104,3 +100,19 @@ def get_similar_articles(query: str, limit: int = 5) -> List[Dict[str, Any]]:
     elif response.error:
         raise Exception(f"Supabase query error: {response.error}")
     return []
+
+
+# def article_reports(articles: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+#     """
+#     Generates a report for each article in the list.
+    
+#     Args:
+#         articles (List[Dict[str, Any]]): List of articles to generate reports for.
+    
+#     Returns:
+#         List[Dict[str, Any]]: List of reports for each article.
+#     """
+#     reports = []
+#     for article in articles:
+        
+#     return reports
