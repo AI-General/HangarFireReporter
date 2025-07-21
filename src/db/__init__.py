@@ -3,7 +3,20 @@ from typing import List, Dict, Any
 from supabase import create_client
 import json
 from src.llm import get_embedding
+from src.logging.colorlog_config import get_color_logger
 
+# Use the color logger from the logging utility
+logger = get_color_logger()
+
+# Supabase credentials from environment variables
+SUPABASE_URL = os.getenv('SUPABASE_URL')
+SUPABASE_KEY = os.getenv('SUPABASE_KEY')
+
+if not SUPABASE_URL or not SUPABASE_KEY:
+    raise EnvironmentError('Supabase credentials not set in environment variables.')
+
+supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
+    
 def clean_database(db_name: str) -> None:
     """
     Cleans the database by dropping the specified table if it exists.
@@ -11,15 +24,6 @@ def clean_database(db_name: str) -> None:
     Args:
         db_name (str): Name of the database to clean.
     """
-    # Supabase credentials from environment variables
-    SUPABASE_URL = os.getenv('SUPABASE_URL')
-    SUPABASE_KEY = os.getenv('SUPABASE_KEY')
-    
-    if not SUPABASE_URL or not SUPABASE_KEY:
-        raise EnvironmentError('Supabase credentials not set in environment variables.')
-    
-    supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
-    
     # Drop the table if it exists
     supabase.table(db_name).delete().gte("id", 0).execute()
 
@@ -32,16 +36,7 @@ def doc_upload(file_path: str) -> List[Dict[str, Any]]:
     # Read JSON file
     with open(file_path, 'r', encoding='utf-8') as f:
         articles = json.load(f)
-    
-    # Supabase credentials from environment variables
-    SUPABASE_URL = os.getenv('SUPABASE_URL')
-    SUPABASE_KEY = os.getenv('SUPABASE_KEY')
-    
-    if not SUPABASE_URL or not SUPABASE_KEY:
-        raise EnvironmentError('Supabase credentials not set in environment variables.')
-    
-    supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
-
+        
     if not isinstance(articles, list):
         raise ValueError('JSON file must contain a list of articles.')
 
@@ -82,37 +77,14 @@ def get_similar_articles(query: str, limit: int = 5) -> List[Dict[str, Any]]:
     Returns:
         List[Dict[str, Any]]: List of similar articles.
     """
-    SUPABASE_URL = os.getenv('SUPABASE_URL')
-    SUPABASE_KEY = os.getenv('SUPABASE_KEY')
-    
-    if not SUPABASE_URL or not SUPABASE_KEY:
-        raise EnvironmentError('Supabase credentials not set in environment variables.')
-    
-    supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
-    
     # Get embedding for the query
     query_embedding = get_embedding(query)
     
     # Query the database for similar articles
     response = supabase.rpc('match_articles', {'query_embedding': query_embedding, 'match_count': limit}).execute()
     if response.data:
-        return response.data
+        return response.data, query_embedding
     elif response.error:
         raise Exception(f"Supabase query error: {response.error}")
     return []
 
-
-# def article_reports(articles: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
-#     """
-#     Generates a report for each article in the list.
-    
-#     Args:
-#         articles (List[Dict[str, Any]]): List of articles to generate reports for.
-    
-#     Returns:
-#         List[Dict[str, Any]]: List of reports for each article.
-#     """
-#     reports = []
-#     for article in articles:
-        
-#     return reports

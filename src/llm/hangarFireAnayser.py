@@ -112,7 +112,7 @@ Be thorough in your analysis and ensure accuracy in classification."""
             print(f"API call error: {e}")
             raise
     
-    def analyze_article(self, article: Dict) -> None:
+    def analyze_article(self, article: Dict) -> Dict[str, Any]:
         """
         Add a new article to the database or storage.
         This method should implement the logic to store the article.
@@ -122,7 +122,7 @@ Location: {article.get('location', "")}
 Description: {article.get('description', "")}
 Content: {article.get('content', "")}""".strip()
 
-        similar_articles = get_similar_articles(combined_text, limit=3)
+        similar_articles, query_embedding = get_similar_articles(combined_text, limit=3)
 
         analysis_result = self._analyze_article(similar_articles, article)
         
@@ -130,4 +130,4 @@ Content: {article.get('content', "")}""".strip()
             analysis_result["id"] = similar_articles[analysis_result["duplicate_index"] - 1].get("id", None)
         print(f"Analysis result: {analysis_result}")
         
-        return analysis_result
+        return analysis_result, query_embedding

@@ -6,6 +6,7 @@ from src.parser.doc import doc_parse
 from src.scrapers.scrape_newsapi import get_articles_from_newsapi
 from src.scrapers.scrape_serpapi import SerpScraper
 from src.db import doc_upload, clean_database, get_similar_articles
+from src.db.upload import article_upload
 
 
 if __name__ == "__main__":
@@ -73,9 +74,10 @@ if __name__ == "__main__":
         analyzer = HangarFireAnalyzer()
         analyzer.analyze_article(article=article)
     elif option == "backfill" or option == "6":
-        file_path = "temp/serpapi_articles.json"
+        file_path = "temp/serpapi_articles_test.json"
         with open(file_path, "r", encoding="utf-8") as f:
             articles = json.load(f)
-        
+        new_articles = article_upload(articles)
+        print(f"Uploaded {len(new_articles)} new articles to Supabase.")
     else:
         print(f"Unknown option: {option}")
