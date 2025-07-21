@@ -88,3 +88,17 @@ def get_similar_articles(query: str, limit: int = 5) -> List[Dict[str, Any]]:
         raise Exception(f"Supabase query error: {response.error}")
     return []
 
+
+def get_articles() -> List[Dict[str, Any]]:
+    """
+    Retrieves articles from the 'articles' table in Supabase for a specific week.
+
+    Returns:
+        List[Dict[str, Any]]: List of articles for the specified week.
+    """
+    response = supabase.table('articles').select('*').neq('collectedAt', 'doc').execute()
+    if response.data:
+        return response.data
+    elif response.error:
+        raise Exception(f"Supabase query error: {response.error}")
+    return []

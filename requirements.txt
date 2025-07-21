@@ -5,3 +5,5 @@ google-search-results
 python-docx
 supabase
 openai
+pandas
+openpyxl

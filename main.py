@@ -5,9 +5,9 @@ import sys
 from src.parser.doc import doc_parse
 from src.scrapers.scrape_newsapi import get_articles_from_newsapi
 from src.scrapers.scrape_serpapi import SerpScraper
-from src.db import doc_upload, clean_database, get_similar_articles
+from src.db import doc_upload, clean_database, get_articles, get_similar_articles
 from src.db.upload import article_upload
-
+from src.excel.article_excel_exporter import ArticleExcelExporter
 
 if __name__ == "__main__":
     dotenv.load_dotenv()  # Load environment variables from .env file
@@ -83,8 +83,9 @@ if __name__ == "__main__":
             json.dump(new_articles, f, ensure_ascii=False, indent=2)
         print(f"Uploaded {len(new_articles)} new articles to Supabase.")
     
-    elif option == "backfill_report" or option == "7":
-        pass
+    elif option == "backfill_excel" or option == "7":
+        exporter = ArticleExcelExporter()
+        exporter.export_articles_to_excel()
     
     else:
         print(f"Unknown option: {option}")

@@ -14,3 +14,5 @@ class Config:
     # OpenAI API Key
     OPENAI_API_KEY = os.getenv('OPENAI_API_KEY')
     
+    # Report File Path
+    REPORT_FILE_PATH = 'reports/hangar_fire_report.xlsx'
