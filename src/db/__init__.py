@@ -59,6 +59,9 @@ Content: {article.get('content', "")}""".strip()
             raise ValueError('Article missing title and content for embedding.')
 
         article['embedding'] = get_embedding(combined_text)
+        
+        article["date"] = ""
+        article["collectedAt"] = "doc"
 
         if isinstance(article.get('url'), str): article['url'] = [article.get('url')]
 
@@ -70,3 +73,34 @@ Content: {article.get('content', "")}""".strip()
             raise Exception(f"Supabase insert error: {response['error']}")
         return response.get('data', [])
     return [] 
+
+
+def get_similar_articles(query: str, limit: int = 5) -> List[Dict[str, Any]]:
+    """
+    Retrieves similar articles based on the query using the 'articles' table in Supabase.
+    
+    Args:
+        query (str): The search query to find similar articles.
+        limit (int): The maximum number of articles to return.
+    
+    Returns:
+        List[Dict[str, Any]]: List of similar articles.
+    """
+    SUPABASE_URL = os.getenv('SUPABASE_URL')
+    SUPABASE_KEY = os.getenv('SUPABASE_KEY')
+    
+    if not SUPABASE_URL or not SUPABASE_KEY:
+        raise EnvironmentError('Supabase credentials not set in environment variables.')
+    
+    supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
+    
+    # Get embedding for the query
+    query_embedding = get_embedding(query)
+    
+    # Query the database for similar articles
+    response = supabase.rpc('match_articles', {'query_embedding': query_embedding, 'match_count': limit}).execute()
+    if response.data:
+        return response.data
+    elif response.error:
+        raise Exception(f"Supabase query error: {response.error}")
+    return []

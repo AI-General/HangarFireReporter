@@ -5,7 +5,7 @@ import sys
 from src.parser.doc import doc_parse
 from src.scrapers.scrape_newsapi import get_articles_from_newsapi
 from src.scrapers.scrape_serpapi import SerpScraper
-from src.db import doc_upload, clean_database
+from src.db import doc_upload, clean_database, get_similar_articles
 
 
 if __name__ == "__main__":
@@ -27,7 +27,7 @@ if __name__ == "__main__":
             json.dump(articles, f, ensure_ascii=False, indent=2)
         print(f"Scraped {len(articles)} articles and saved to articles.json.")
     
-    if option == "scrape_serpapi":
+    elif option == "scrape_serpapi":
         query_list = [
             'aircraft hangar fire',
             'MRO facility fire',
@@ -40,17 +40,24 @@ if __name__ == "__main__":
             json.dump(articles, f, ensure_ascii=False, indent=2)
         print(f"Scraped {len(articles)} articles and saved to serpapi_articles.json.")  
     
-    if option == "doc_parse":
+    elif option == "doc_parse":
         file_path = "data/history.docx"  # Replace with your document path
         articles = doc_parse(file_path)
         with open("temp/doc_articles.json", "w", encoding="utf-8") as f:
             json.dump(articles, f, ensure_ascii=False, indent=2)
         print(f"Parsed {len(articles)} articles and saved to doc_articles.json.")
         
-    if option == "doc_upload":
+    elif option == "doc_upload":
         clean_database("articles")
         file_path = "temp/doc_articles_test.json"
         doc_upload(file_path)
-        
+
+    elif option == "test_similarity":
+        query = "aircraft hangar fire"
+        similar_articles = get_similar_articles(query, limit=2)
+        print(f"Found {len(similar_articles)} similar articles for query '{query}':")
+        for article in similar_articles:
+            print(f"- {article['title']} (Similarity: {article['similarity']})")
+            
     else:
         print(f"Unknown option: {option}")
