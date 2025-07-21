@@ -32,7 +32,7 @@ def article_upload(articles: List[Dict[str, Any]], is_backfill: bool) -> List[Di
         if analysis_result.get("is_valid", False):
             if analysis_result["duplicate_index"] > 0:
                 original_article = supabase.table('articles').select('*').eq('id', analysis_result["id"]).execute().data[0]
-                if article.get('url') not in original_article.get('url', []):
+                if article.get('url') not in original_article.get('url', []) and len(original_article.get('url', [])) < 3:
                     original_article['url'].append(article.get('url', ''))
                 if analysis_result.get('airport_hangar_name') and not original_article.get('airport_hangar_name'):
                     original_article['airport_hangar_name'] = analysis_result.get('airport_hangar_name')

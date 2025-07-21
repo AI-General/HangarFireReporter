@@ -16,3 +16,6 @@ class Config:
     
     # Report File Path
     REPORT_FILE_PATH = 'reports/hangar_fire_report.xlsx'
+
+    SCHEDULE_TIME = '08:00'
+    SCHEDULE_DAY = 'tuesday'

@@ -7,3 +7,5 @@ supabase
 openai
 pandas
 openpyxl
+mailjet-rest
+schedule
