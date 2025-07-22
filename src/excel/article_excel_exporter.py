@@ -32,6 +32,8 @@ class ArticleExcelExporter:
         for article in articles:
             # Format URLs as comma-separated string (no brackets)
             urls = article.get("url", [])
+            if len(urls) > 3:
+                urls = urls[:3]
             if isinstance(urls, list):
                 url_str = ", ".join(urls)
             else:
