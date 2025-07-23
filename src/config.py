@@ -19,3 +19,26 @@ class Config:
 
     SCHEDULE_TIME = '08:00'
     SCHEDULE_DAY = 'tuesday'
+    
+    query_list = [
+        'aircraft hangar fire',
+        'MRO facility fire',
+        'aviation hangar fire',
+        'aircraft maintenance hangar fire',
+        'foam suppression system malfunction',
+        'AFFF accidental discharge',
+        'foam fire suppression system malfunction'
+    ]
+    
+    LANGUAGES = [
+        # 'en',
+        'zh-cn',
+        'es',
+        'fr',
+        'pt',
+        'de',
+        'ar',
+        'ru',
+        'jp',
+        'tr'
+    ]

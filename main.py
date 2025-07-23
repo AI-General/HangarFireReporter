@@ -21,12 +21,7 @@ scheduler = ScrapingScheduler()
 config = Config()
 
 def weekly_process():
-    query_list = [
-        'aircraft hangar fire',
-        'MRO facility fire',
-        'aviation hangar fire',
-        'aircraft maintenance hangar fire'
-    ]
+    query_list = config.query_list
     scraper = SerpScraper()
     articles = scraper.scrape(query_list=query_list, weekly=True)
     
@@ -54,14 +49,13 @@ def email_sender_test():
     logger.info(f"Email sent: {'Success' if email_success else 'Failed'}")
 
 
-
-
 if __name__ == "__main__":
     dotenv.load_dotenv()  # Load environment variables from .env file
     if len(sys.argv) < 2:
         logger.error("Usage: python main.py <option>")
         sys.exit(1)
        
+    query_list = config.query_list
     option = sys.argv[1].lower()
     
     if option == "scrape_newsapi" or option == "0":
@@ -79,12 +73,6 @@ if __name__ == "__main__":
         weekly_process()
 
     elif option == "scrape_serpapi" or option == "1":
-        query_list = [
-            'aircraft hangar fire',
-            'MRO facility fire',
-            'aviation hangar fire',
-            'aircraft maintenance hangar fire'
-        ]
         scraper = SerpScraper()
         articles = scraper.scrape(query_list=query_list)
         with open("temp/serpapi_articles.json", "w", encoding="utf-8") as f:
