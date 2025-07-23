@@ -46,13 +46,15 @@ ANALYSIS REQUIREMENTS:
    • Occurred in ACTIVE aircraft hangars (MRO, commercial, or military aviation)
    • Fire originated in OR affected the hangar structure or operations
    • Direct involvement of aircraft is noted, OR facility functions support aviation activity
+   • Includes incidents involving malfunctioning or accidental discharge of foam fire suppression systems (e.g., AFFF, High Expansion foam, fire retardant foam) that directly impacts the facility or aircraft
    
    EXCLUDE:
    • Fires in repurposed or historic hangars (museums, galleries, event spaces)
    • Fires in storage-only buildings with no aircraft activity
    • Non-fire-related incidents (false alarms, power outages, maintenance issues)
+   • Events related to accidental discharge if it does not involve aircraft or the suppression system causing a fire-related incident
    
-   True only if the article describes a valid aviation hangar fire incident.
+   True only if the article describes a valid aviation hangar fire incident or accidental discharge event involving a malfunction of fire suppression systems.
 
 2. **duplicate_index** (integer 0-3):
    Compare the new article with the 3 existing articles:
