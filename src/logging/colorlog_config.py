@@ -1,11 +1,16 @@
 import logging
 from colorlog import ColoredFormatter
 
+logging.getLogger("httpx").setLevel(logging.WARNING)
 
 def get_color_logger(name: str = "color_logger") -> logging.Logger:
     logger = logging.getLogger(name)
     if logger.hasHandlers():
         logger.handlers.clear()
+    
+    # Disable the root logger handler to avoid duplicate logs
+    logging.getLogger().handlers.clear()
+    
     ch = logging.StreamHandler()
     ch.setLevel(logging.DEBUG)
     formatter = ColoredFormatter(

@@ -1,5 +1,6 @@
 import os
 import pandas as pd
+from src.llm.language import translate_text
 from src.db import get_articles
 from src.config import Config
 from openpyxl import load_workbook
@@ -13,7 +14,9 @@ class ArticleExcelExporter:
         "Airport / Hangar Name",
         "Country / Region",
         "Brief Summary",
-        "Source Link(s)"
+        "Source Link(s)",
+        "Language",
+        "Origin Title"
     ]
     MAX_COL_WIDTH = 50  # Maximum column width
 
@@ -38,12 +41,21 @@ class ArticleExcelExporter:
                 url_str = ", ".join(urls)
             else:
                 url_str = str(urls)
+            
+            language = article.get("language", "en")
+            summary = article.get("description") or article.get("title") 
+            
+            if language != "en":
+                summary = translate_text(summary, "en", language)   
+            
             row = {
                 "Date of Incident": article.get("publishedAt", ""),
                 "Airport / Hangar Name": article.get("airport_hangar_name", ""),
                 "Country / Region": article.get("location", ""),
-                "Brief Summary": article.get("description") or article.get("title"),
+                "Brief Summary": summary,
                 "Source Link(s)": url_str,
+                "Language": language,
+                "Origin Title": article.get("title", "") if language != "en" else "",
             }
             new_rows.append(row)
         new_df = pd.DataFrame(new_rows, columns=self.HEADERS)

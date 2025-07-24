@@ -1,5 +1,7 @@
 import os
+from src.llm.language import translate_query
 from src.logging.colorlog_config import get_color_logger
+from src.config import Config
 
 # Configure colorful logging using Rich
 from datetime import datetime, timedelta
@@ -8,6 +10,7 @@ from serpapi import GoogleSearch
 
 # Use the color logger from the logging utility
 logger = get_color_logger()
+config = Config()
 
 class SerpScraper:
     def __init__(self):
@@ -86,13 +89,14 @@ class SerpScraper:
         except Exception:
             return datetime.now().strftime('%Y-%m-%d')
 
-    def search_google_news(self, query: str, weekly: bool = False) -> List[Dict[str, Any]]:
+    def search_google_news(self, query: str, weekly: bool = False, language: str = 'en') -> List[Dict[str, Any]]:
         """Search Google News for query"""
         try:
             params = {
                 "engine": "google_news",
                 "q": query,
                 "api_key": self.api_key,
+                "hl": language
             }
             
             search = GoogleSearch(params)
@@ -106,6 +110,7 @@ class SerpScraper:
                     "source": article.get("source").get("name"),
                     "author": ",".join(article.get("source").get("authors")) if article.get("source").get("authors") else article.get("source").get("authors"),
                     "publishedAt": self._parse_date(article.get("date")),
+                    "language": language,
                 } for article in results["news_results"]]
                 
                 if weekly:
@@ -130,7 +135,7 @@ class SerpScraper:
             logger.error(f"Error searching Google News for query '{query}': {str(e)}")
             return []
 
-    def search_bing_news(self, query: str, weekly: bool = False) -> List[Dict[str, Any]]:
+    def search_bing_news(self, query: str, weekly: bool = False, language: str = 'en') -> List[Dict[str, Any]]:
         """Search Bing News for MRO hangar projects with pagination and date range check"""
         try:
             params = {
@@ -168,6 +173,7 @@ class SerpScraper:
                 "source": article.get("source"),
                 "author": None,
                 "publishedAt": self._parse_date(article.get("date")),
+                "language": language
             } for article in all_articles]
         except Exception as e:
             logger.error(f"Error searching Bing News for query '{query}': {str(e)}")
@@ -177,16 +183,19 @@ class SerpScraper:
         """Scrape all news sources"""
         all_articles = []
 
-        for query in query_list:
-            logger.info(f"Searching for query: {query}")
+        for language in config.LANGUAGES:
+            logger.info(f"##### Starting Scraping news for language: {language} #####")
+            for query in query_list:
+                query_lng = translate_query(query, language)
+                logger.info(f"Searching for query: {query_lng}")
 
-            # Search Bing News
-            bing_results = self.search_bing_news(query, weekly=weekly)
-            all_articles.extend(bing_results)
-            
-            # Search Google News
-            google_results = self.search_google_news(query, weekly=weekly)
-            all_articles.extend(google_results)
+                # Search Bing News
+                bing_results = self.search_bing_news(query_lng, weekly=weekly, language=language)
+                all_articles.extend(bing_results)
+                
+                # Search Google News
+                google_results = self.search_google_news(query_lng, weekly=weekly, language=language)
+                all_articles.extend(google_results)
         
         # Remove duplicates based on URL
         unique_articles = self._remove_duplicates(all_articles)
