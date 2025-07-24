@@ -31,7 +31,7 @@ class Config:
     ]
     
     LANGUAGES = [
-        # 'en',
+        'en',
         'zh-cn',
         'es',
         'fr',
@@ -39,6 +39,6 @@ class Config:
         'de',
         'ar',
         'ru',
-        'jp',
+        'ja',
         'tr'
     ]

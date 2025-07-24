@@ -4,6 +4,7 @@ from typing import Any, Dict, List
 
 from supabase import create_client
 from tqdm import tqdm
+from src.llm.language import translate_text
 from src.logging.colorlog_config import get_color_logger
 from src.llm.hangarFireAnayser import HangarFireAnalyzer
 
@@ -39,7 +40,10 @@ def article_upload(articles: List[Dict[str, Any]], is_backfill: bool) -> List[Di
                 if analysis_result.get('country_region') and not original_article.get('location'):
                     original_article['location'] = analysis_result.get('country_region')
                 if article.get('description') and not original_article.get('description'):
-                    original_article['description'] = article.get('description', '')
+                    if article.get('language') == 'en':
+                        original_article['description'] = article.get('description', '')
+                    else:
+                        original_article['description'] = translate_text(article.get('description', ''), 'en', article.get('language', 'en'))
                 if article.get('content') and not original_article.get('content'):
                     original_article['content'] = article.get('content', '')
                 supabase.table('articles').update(original_article).eq('id', analysis_result["id"]).execute()
@@ -51,11 +55,12 @@ def article_upload(articles: List[Dict[str, Any]], is_backfill: bool) -> List[Di
                     "airport_hangar_name": analysis_result.get('airport_hangar_name', ''),
                     "author": article.get('author'),
                     "url": [article.get('url')],
-                    "description": article.get('description'),
+                    "description": translate_text(article.get('description', ''), 'en', article.get('language', 'en')) if article.get('language', 'en') != 'en' and article.get('description') else article.get('description'),
                     "content": article.get('content'),
                     "embedding": query_embedding,
                     "publishedAt": article.get('publishedAt')[:10] if article.get('publishedAt') else None,
                     "collectedAt": week_string,
+                    "language": article.get('language')
                 }
                 
                 new_articles.append(record)
