@@ -3,6 +3,8 @@ import dotenv
 import datetime
 import json
 import sys
+
+from tqdm import tqdm
 from src.logging.colorlog_config import get_color_logger
 from src.parser.doc import doc_parse
 from src.scrapers.scrape_newsapi import get_articles_from_newsapi
@@ -131,6 +133,43 @@ if __name__ == "__main__":
     elif option == "schedule" or option == "9":
         scheduler.schedule_weekly_run(weekly_process)
         scheduler.run_scheduler()
+
+    elif option == 'translate' or option == "10":
+        from src.llm.language import translate_text
+        input_path = "temp/serpapi_articles-non-en.json"
+        output_path = "temp/serpapi_articles-en.json"
+        with open(input_path, "r", encoding="utf-8") as f:
+            articles = json.load(f)
+        translated_articles = []
+        for article in tqdm(articles):
+            lang = article.get("language", "en")
+            translated_article = article.copy()
+            if lang != "en":
+                # Translate title and description with retry logic
+                for field in ["title", "description"]:
+                    value = article.get(field, "")
+                    attempts = 0
+                    while attempts < 3:
+                        try:
+                            translated = translate_text(value, "en", lang)
+                            translated_article[f"{field}_en"] = translated
+                            break
+                        except Exception as e:
+                            attempts += 1
+                            if attempts < 3:
+                                print(f"Error translating {field} (attempt {attempts}) for article: {e}. Retrying in 10 seconds...")
+                                import time
+                                time.sleep(10)
+                            else:
+                                print(f"Failed to translate {field} after 3 attempts. Error: {e}")
+                                translated_article[f"{field}_en"] = ""
+            else:
+                translated_article["title_en"] = article.get("title", "")
+                translated_article["description_en"] = article.get("description", "")
+            translated_articles.append(translated_article)
+        with open(output_path, "w", encoding="utf-8") as f:
+            json.dump(translated_articles, f, ensure_ascii=False, indent=2)
+        print(f"Translated {len(translated_articles)} articles and saved to {output_path}.")
     
     else:
         print(f"Unknown option: {option}")
