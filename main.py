@@ -26,6 +26,8 @@ def weekly_process():
     query_list = config.query_list
     scraper = SerpScraper()
     articles = scraper.scrape(query_list=query_list, weekly=True)
+    with open("temp/serpapi_articles.json", "w", encoding="utf-8") as f:
+        json.dump(articles, f, ensure_ascii=False, indent=2)
     
     new_articles = article_upload(articles, is_backfill=False)
     logger.info(f"Uploaded {len(new_articles)} new articles to Supabase.")
@@ -76,7 +78,7 @@ if __name__ == "__main__":
 
     elif option == "scrape_serpapi" or option == "1":
         scraper = SerpScraper()
-        articles = scraper.scrape(query_list=query_list)
+        articles = scraper.scrape(query_list=query_list, weekly=True)
         with open("temp/serpapi_articles.json", "w", encoding="utf-8") as f:
             json.dump(articles, f, ensure_ascii=False, indent=2)
         print(f"Scraped {len(articles)} articles and saved to serpapi_articles.json.")
@@ -171,5 +173,16 @@ if __name__ == "__main__":
             json.dump(translated_articles, f, ensure_ascii=False, indent=2)
         print(f"Translated {len(translated_articles)} articles and saved to {output_path}.")
     
+    elif option == "article_upload" or option == "11":
+        file_path = "temp/serpapi_articles.json"
+        with open(file_path, "r", encoding="utf-8") as f:
+            articles = json.load(f)
+        new_articles = article_upload(articles, is_backfill=False)
+        logger.info(f"Uploaded {len(new_articles)} new articles to Supabase.")
+
+        if len(new_articles) > 0:
+            exporter = ArticleExcelExporter()
+            exporter.export_articles_to_excel()
+        
     else:
         print(f"Unknown option: {option}")
