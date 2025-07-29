@@ -61,14 +61,14 @@ class ArticleExcelExporter:
         new_df = pd.DataFrame(new_rows, columns=self.HEADERS)
 
         # If file exists, update it
-        if os.path.exists(self.output_path):
-            old_df = pd.read_excel(self.output_path)
-            # Remove duplicates based on Source Link(s)
-            combined_df = pd.concat([new_df, old_df], ignore_index=True)
-            combined_df.drop_duplicates(subset=["Source Link(s)"], keep="last", inplace=True)
-            combined_df.reset_index(drop=True, inplace=True)
-        else:
-            combined_df = new_df
+        # if os.path.exists(self.output_path):
+        #     old_df = pd.read_excel(self.output_path)
+        #     # Remove duplicates based on Source Link(s)
+        #     combined_df = pd.concat([new_df, old_df], ignore_index=True)
+        #     combined_df.drop_duplicates(subset=["Source Link(s)"], keep="last", inplace=True)
+        #     combined_df.reset_index(drop=True, inplace=True)
+        # else:
+        combined_df = new_df
 
         # Sort by Date of Incident (descending, most recent first)
         combined_df.sort_values(by="Date of Incident", ascending=False, inplace=True)

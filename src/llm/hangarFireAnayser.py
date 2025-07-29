@@ -17,7 +17,7 @@ class HangarFireAnalyzer:
         """
         prompt = f"""You are an expert analyst specializing in aviation hangar fire incidents. Your task is to analyze a new article and provide structured information about it.
 
-EXISTING ARTICLES FOR COMPARISON:
+EXISTING ARTICLES FOR COMPARISON (It is already verified articles):
 """
         for i, article in enumerate(existing_articles):
             prompt += f"""
@@ -41,7 +41,16 @@ Content: {new_article.get('content', '')}
         prompt += f"""
 ANALYSIS REQUIREMENTS:
 
-1. **is_valid** (boolean):
+1. **duplicate_index** (integer 0-3):
+   Compare the new article with the 3 existing articles:
+   • Return 1-3 if it matches an existing article (same incident, location, date)
+   • If two articles describe the same event (same date and general location, even if details differ), return the index of the existing article as a duplicate.
+   • Return 0 if this is a NEW incident
+   • Consider articles the same if they describe the same fire event, even with different details
+   
+   ** If two articles date and language are very similar it is likely a duplicate **
+
+2. **is_valid** (boolean):
    Include ONLY incidents that meet ALL of the following criteria:
    • Occurred in ACTIVE aircraft hangars (MRO, commercial, or military aviation)
    • Fire originated in OR affected the hangar structure or operations
@@ -54,13 +63,8 @@ ANALYSIS REQUIREMENTS:
    • Non-fire-related incidents (false alarms, power outages, maintenance issues)
    • Events related to accidental discharge if it does not involve aircraft or the suppression system causing a fire-related incident
    
-   True only if the article describes a valid aviation hangar fire incident or accidental discharge event involving a malfunction of fire suppression systems.
-
-2. **duplicate_index** (integer 0-3):
-   Compare the new article with the 3 existing articles:
-   • Return 0 if this is a NEW incident
-   • Return 1-3 if it matches an existing article (same incident, location, date)
-   • Consider articles the same if they describe the same fire event, even with different details
+   Do NOT assume a hangar fire unless the article clearly states the incident occurred in a hangar or affected hangar operations.
+   If the location is ambiguous or only refers to an airport, airplane, or other facility, and not specifically a hangar, set "is_valid": false.
 
 3. **airport_hangar_name** (string):
    • Extract the specific name of the airport, airfield, or hangar facility
@@ -75,8 +79,8 @@ ANALYSIS REQUIREMENTS:
 RESPONSE FORMAT:
 Return ONLY a valid JSON object with this exact structure:
 {{
-    "is_valid": boolean,
     "duplicate_index": integer (0-3),
+    "is_valid": boolean,
     "airport_hangar_name": "string",
     "country_region": "string"
 }}
